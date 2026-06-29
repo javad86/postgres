@@ -5,7 +5,6 @@ pipeline {
     IMAGE_NAME = 'javad86/postgres'
     IMAGE_TAG = "${BUILD_NUMBER}"
     DEPLOY_NAMESPACE = 'default'
-    POSTGRES_PASSWORD_CREDENTIAL = 'postgres-password'
     DEPLOYMENT_NAME = 'postgres'
   }
 
@@ -49,16 +48,9 @@ pipeline {
 
     stage('Render Secret') {
       steps {
-        withCredentials([
-          string(credentialsId: env.POSTGRES_PASSWORD_CREDENTIAL, variable: 'POSTGRES_PASSWORD')
-        ]) {
-          sh '''
-            kubectl create secret generic postgres-secret \
-              --from-literal=POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
-              --namespace ${DEPLOY_NAMESPACE} \
-              --dry-run=client -o yaml | kubectl apply -f -
-          '''
-        }
+        sh '''
+          kubectl apply -f postgres-secret.yaml --namespace ${DEPLOY_NAMESPACE}
+        '''
       }
     }
 
